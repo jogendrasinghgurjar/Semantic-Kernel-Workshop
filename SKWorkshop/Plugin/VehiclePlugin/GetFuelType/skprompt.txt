@@ -1,0 +1,7 @@
+﻿User: {{$input}}
+
+---------------------------------------------
+
+based on the above input, can you please tell me what is the fuel type of user's vehicle? Fuel type could be Petrol, Diesel, Electric, CNG.
+
+Vehicle fuel type is:

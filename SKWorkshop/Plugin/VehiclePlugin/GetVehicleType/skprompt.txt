@@ -1,0 +1,12 @@
+﻿User: {{$input}}
+
+---------------------------------------------
+
+Based on user's input please provide the type of vehicle. The vehicle type can be- 
+Car
+Motorcycle
+Truck
+Bus
+Van
+
+Vehicle type is:

@@ -54,3 +54,6 @@ def get_parking_intent_chain():
     )
     intent_chain = LLMChain(llm=llm, prompt=final_prompt, output_key="intent")
     return intent_chain
+
+def display_parking_response():
+    pass

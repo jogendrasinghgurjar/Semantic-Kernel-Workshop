@@ -19,13 +19,9 @@ import os
 import chainlit as cl
 # from chainlit import ask_for_input
 
-def set_env():
-    os.environ["OPENAI_API_TYPE"] = "azure"
-    os.environ["OPENAI_API_VERSION"] = "2023-05-15"
-    os.environ["OPENAI_API_BASE"] = "https://ioe-ncp-poc.openai.azure.com/"
-    os.environ["OPENAI_API_KEY"] = "8990bbe655af41cb871e57d40f4a1e61"
 
-set_env()
+from dotenv import load_dotenv
+load_dotenv("../../.env")
 
 from langchain.prompts.chat import (
     ChatPromptTemplate,

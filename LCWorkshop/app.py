@@ -14,5 +14,4 @@ def start():
 async def main(message):
     agent = cl.user_session.get("agent")  # type: AgentExecutor
     cb = cl.LangchainCallbackHandler(stream_final_answer=True)
-
     await cl.make_async(agent.run)(message, callbacks=[cb])

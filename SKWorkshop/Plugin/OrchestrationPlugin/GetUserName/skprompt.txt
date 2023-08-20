@@ -1,0 +1,7 @@
+﻿User: {{$input}}
+
+---------------------------------------------
+
+User's name is in the input. Please tell me the name of the user.
+
+User's Name:

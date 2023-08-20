@@ -1,0 +1,15 @@
+﻿Extract the vehicle type, fuel type, and user's name from the input and output them in JSON format.
+
+-------------------
+
+INPUT: I am Prakhar, and I drive a petrol car
+OUTPUT: {"vehicleType":"Car", "fuelType":"Petrol", "userName":"Prakhar"}
+
+INPUT: Mansi cares a lot about environment and she has an electric car.
+OUTPUT: {"vehicleType":"Car", "fuelType":"Electric", "userName":"Mansi"}
+
+INPUT: I saw Madhukar in the office today, he came on his diesel bike
+OUTPUT: {"vehicleType":"Bike", "fuelType":"Diesel", "userName":"Madhukar"}
+
+INPUT: {{$input}}
+OUTPUT: 

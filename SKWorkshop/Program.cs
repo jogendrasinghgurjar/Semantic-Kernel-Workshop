@@ -6,74 +6,103 @@ System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Inst
 
 
 // 1... instantiating  kernel
-var builder = new KernelBuilder();
+IKernel kernel = SemanticKernelConfiguration();
 
-builder.WithAzureTextCompletionService(
-            "",                // Model Deployment Name 
-            "",  // Azure OpenAI Endpoint
-            "");      // Azure OpenAI Key
+// 2... Semantic plugin
+SKContext intent = await SemanticKernelSkills(kernel);
 
-var kernel = builder.Build();
 
-// 2... Semantic plugin- a. Get user's intent
+// 3... Memory context
+intent = await SemanticKernelContextMemory(kernel, intent);
 
-var pluginsDirectory = Path.Combine("C:\\Users\\pramishra\\Desktop\\MLTrainingMaterial\\Semantic-Kernel-Workshop\\SKWorkshop\\Plugin\\");
+// 4... Native function & Connector
+await SemanticKernel_NF_Connector(kernel);
 
-// Import the OrchestratorPlugin from the plugins directory.
-var orchestratorPlugin = kernel.ImportSemanticSkillFromDirectory(pluginsDirectory, "OrchestrationPlugin");
+// 5... Planner
+await SemanticKernelPlanner(kernel);
 
-// Get the GetIntent function from the OrchestratorPlugin and run it
-var intent = await orchestratorPlugin["GetIntent"]
-     .InvokeAsync("I want to park my vehicle can you help me find an available slot?");
+//__________________________________________________________________________________________________
 
-Console.WriteLine(intent);
+static IKernel SemanticKernelConfiguration()
+{
+    var builder = new KernelBuilder();
 
-// Intent with defined options
+    builder.WithAzureTextCompletionService(
+                "",                // Model Deployment Name 
+                "",  // Azure OpenAI Endpoint
+                "");      // Azure OpenAI Key
 
-var context = kernel.CreateNewContext();
-context["options"] = "FetchAvailableParkingSlot, FindMyParkedVehicle, OutOfContext";
-context["input"] = "I want to park my vehicle can you help me find an available slot?";
+    var kernel = builder.Build();
+    return kernel;
+}
 
-intent = await orchestratorPlugin["GetIntent"]
-     .InvokeAsync(context);
+static async Task<SKContext> SemanticKernelSkills(IKernel kernel)
+{
+    var pluginsDirectory = Path.Combine("C:\\Users\\pramishra\\Desktop\\MLTrainingMaterial\\Semantic-Kernel-Workshop\\SKWorkshop\\Plugin\\");
+    // Import the OrchestratorPlugin from the plugins directory.
+    var orchestratorPlugin = kernel.ImportSemanticSkillFromDirectory(pluginsDirectory, "OrchestrationPlugin");
 
-Console.WriteLine(intent);
+    // a. Get the GetIntent function from the OrchestratorPlugin and run it
+    var intent = await orchestratorPlugin["GetIntent"]
+         .InvokeAsync("I want to park my vehicle can you help me find an available slot?");
 
-// b. Get vehicle type
+    Console.WriteLine(intent);
 
-// Import the VehiclePlugin from the plugins directory.
-var vehiclePlugin = kernel.ImportSemanticSkillFromDirectory(pluginsDirectory, "VehiclePlugin");
+    // b. Get vehicle type
 
-// Get the GetVehicleType function and run it
-var vehicleType = await vehiclePlugin["GetVehicleType"].InvokeAsync("Hi, Please tell me available parking slots for Bike");
+    // Import the VehiclePlugin from the plugins directory.
+    var vehiclePlugin = kernel.ImportSemanticSkillFromDirectory(pluginsDirectory, "VehiclePlugin");
 
-Console.WriteLine(vehicleType);
+    // Get the GetVehicleType function and run it
+    var vehicleType = await vehiclePlugin["GetVehicleType"].InvokeAsync("Hi, Please tell me available parking slots for Bike");
 
-// 3... Native function
+    Console.WriteLine(vehicleType);
+    return intent;
+}
 
-// Import the VehicleParking native function
-var vehicleParkingFunction = kernel.ImportSkill(new VehicleParking(), "VehicleParking");
+static async Task<SKContext> SemanticKernelContextMemory(IKernel kernel, SKContext intent)
+{
+    var context = kernel.CreateNewContext();
+    context["options"] = "FetchAvailableParkingSlot, FindMyParkedVehicle, OutOfContext";
+    context["input"] = "I want to park my vehicle can you help me find an available slot?";
 
-// Create context variable to pass the native code parameters
-var vehicleContext = kernel.CreateNewContext();
-vehicleContext["vehicleType"] = "Car";
-vehicleContext["fuelType"] = "Electric";
-vehicleContext["userName"] = "Ananya";
+    var pluginsDirectory = Path.Combine("C:\\Users\\pramishra\\Desktop\\MLTrainingMaterial\\Semantic-Kernel-Workshop\\SKWorkshop\\Plugin\\");
+    var orchestratorPlugin = kernel.ImportSemanticSkillFromDirectory(pluginsDirectory, "OrchestrationPlugin");
+    intent = await orchestratorPlugin["GetIntent"]
+         .InvokeAsync(context);
 
-// Make a request that runs the FetchAvailableParkingSlot function
-var availableSlots = await vehicleParkingFunction["FetchAvailableParkingSlot"].InvokeAsync(vehicleContext);
-Console.WriteLine(availableSlots);
+    Console.WriteLine(intent);
+    return intent;
+}
 
-// 4. Function chaining
+static async Task SemanticKernel_NF_Connector(IKernel kernel)
+{
+    // Import the VehicleParking native function
+    var vehicleParkingFunction = kernel.ImportSkill(new VehicleParking(), "VehicleParking");
 
-/*// Import Semantic Plugins
-var orchestrationPlugin = kernel.ImportSemanticSkillFromDirectory(pluginsDirectory, "OrchestrationPlugin");
-var vehiclePlugin = kernel.ImportSemanticSkillFromDirectory(pluginsDirectory, "VehiclePlugin");
+    // Create context variable to pass the native code parameters
+    var vehicleContext = kernel.CreateNewContext();
+    vehicleContext["vehicleType"] = "Car";
+    vehicleContext["fuelType"] = "Electric";
+    vehicleContext["userName"] = "Ananya";
 
-// Import the native function
-var vehicleParkingFunction = kernel.ImportSkill(new VehicleParking(), "VehicleParking");
-var orchestrationFunction = kernel.ImportSkill(new OrchestrationPlugin(kernel), "OrchestrationPlugin");
+    // Make a request that runs the FetchAvailableParkingSlot function
+    var availableSlots = await vehicleParkingFunction["FetchAvailableParkingSlot"].InvokeAsync(vehicleContext);
+    Console.WriteLine(availableSlots);
+}
 
-// Make a request that runs the FetchAvailableParkingSlot function
-var availableParkingSlots = await orchestrationFunction["RouteRequest"].InvokeAsync("Hi, My name is Ananya, I drive an electric car. Could you please help me find an available parking slot?");
-Console.WriteLine(availableParkingSlots); */
+static async Task SemanticKernelPlanner(IKernel kernel)
+{
+    var pluginsDirectory = Path.Combine("C:\\Users\\pramishra\\Desktop\\MLTrainingMaterial\\Semantic-Kernel-Workshop\\SKWorkshop\\Plugin\\");
+    // Import Semantic Plugins
+    var orchestrationPlugin = kernel.ImportSemanticSkillFromDirectory(pluginsDirectory, "OrchestrationPlugin");
+    var vehiclePlugin = kernel.ImportSemanticSkillFromDirectory(pluginsDirectory, "VehiclePlugin");
+
+    // Import the native function
+    var vehicleParkingFunction = kernel.ImportSkill(new VehicleParking(), "VehicleParking");
+    var orchestrationFunction = kernel.ImportSkill(new OrchestrationPlugin(kernel), "OrchestrationPlugin");
+
+    // Make a request that runs the FetchAvailableParkingSlot function
+    var availableParkingSlots = await orchestrationFunction["RouteRequest"].InvokeAsync("Hi, My name is Ananya, I drive an electric car. Could you please help me find an available parking slot?");
+    Console.WriteLine(availableParkingSlots);
+}
